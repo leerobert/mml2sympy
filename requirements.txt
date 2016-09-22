@@ -1,1 +1,4 @@
-
+lxml==3.6.1
+mpmath==0.19
+pytest==3.0.2
+sympy==1.0
