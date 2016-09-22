@@ -22,6 +22,11 @@ Example
     >>> expression_strings = mml2sympy(mml)
     >>> expression_strings
     ["Eq(Add(Mul(Integer(2),Symbol('x'),),Integer(4),),Integer(7))"]
+	>>> from sympy import *
+	>>> expressions = [sympify(s, evaluate=False) for s in expression_strings]
+	>>> expressions
+	[Eq(2*x + 4, 7)]
+
 
 Supports
 -------
