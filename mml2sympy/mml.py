@@ -32,33 +32,56 @@ def mml2sympy(mml):
     if not isinstance(mml, str):
         raise Exception('mml must be a string containing the math ML XML')
 
-    # 1. build the mmltree
-    tree = mml2tree(mml)
-
-    # 2. parse out the math/mstyle elements
-    if hasattr(tree, 'mstyle'):
-        tree = tree.xpath('/math/mstyle')[0]
-
-    # 3. determine if it has multiple steps
-    if hasattr(tree, 'mtable'):
-        step_trees = table2trees(tree.mtable)
-    else:  # otherwise just parse the tree as its only one step
-        # assert True == False
-        step_trees = [tree]
-
-    # 4. modify each step tree so that it follows the format
-    # tree2sympy is expecting (meq, madd, mmul, etc.)
+    step_trees = mml2steptrees(mml)
     step_trees = [modify(step_tree) for step_tree in step_trees]
-
-    # 5. parse each individual step into sympy.
     step_sympies = [tree2sympy(step_tree) for step_tree in step_trees]
 
-    # 6. return the collection of steps as sympy strings
     return step_sympies
 
 
-def tree2sympy(mmltree, skip_elements=["mrow", "mfenced", "mstyle",
-               "mtr", "mtd"]):
+def mml2steps(mml):
+    '''
+    Takes mml and converts it into a list of separate MML documents
+    containing the mml code for each individual step. Converts rows
+    in mtable into a list of basic mml expressions.
+    '''
+    if not isinstance(mml, str):
+        raise Exception('mml must be a string containing the math ML XML')
+
+    step_trees = mml2steptrees(mml)
+
+    steps = []
+    for step_tree in step_trees:
+        math = objectify.Element('math')
+        mstyle = objectify.SubElement(math, 'mstyle')
+        mstyle.extend(step_tree.getchildren())
+
+        # take the newly build complete mathml object, clean it, string it
+        objectify.deannotate(math, cleanup_namespaces=True)
+        steps.append(etree.tostring(math).decode('UTF-8'))
+
+    return steps
+
+
+def mml2steptrees(mml):
+    if not isinstance(mml, str):
+        raise Exception('mml must be a string containing the math ML XML')
+
+    tree = mml2tree(mml)
+
+    if hasattr(tree, 'mstyle'):
+        tree = tree.xpath('/math/mstyle')[0]
+
+    if hasattr(tree, 'mtable'):
+        step_trees = table2trees(tree.mtable)
+    else:
+        step_trees = [tree]
+
+    return step_trees
+
+
+def tree2sympy(mmltree,
+               skip_elements=["mrow", "mfenced", "mstyle", "mtr", "mtd"]):
     sympyres = r""
 
     # Non-atomic elements

@@ -1,4 +1,4 @@
-from mml2sympy import mml2tree, tree2sympy, table2trees, modify, mml2sympy
+from mml2sympy import mml2tree, tree2sympy, table2trees, modify, mml2sympy, mml2steps
 
 
 def test_modify():
@@ -281,3 +281,51 @@ def test_mml2sympy():
     assert step_sympies is not None
     assert len(step_sympies) == 3
     assert step_sympies[0] == "Eq(Add(Mul(Integer(2),Symbol('x'),),Integer(4),),Integer(7))"
+
+
+def test_mml2steps():
+    mml = '''
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mstyle displaystyle="true">
+            <mtable columnalign="left">
+              <mtr>
+                <mtd>
+                  <mn> 2 </mn>
+                  <mi> x </mi>
+                  <mo> - </mo>
+                  <mn> 4 </mn>
+                  <mo> = </mo>
+                  <mn> 7 </mn>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mn> 2 </mn>
+                  <mi> x </mi>
+                  <mo> = </mo>
+                  <mn> 11 </mn>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mi> x </mi>
+                  <mo> = </mo>
+                  <mfrac>
+                    <mrow>
+                      <mn> 11 </mn>
+                    </mrow>
+                    <mrow>
+                      <mn> 2 </mn>
+                    </mrow>
+                  </mfrac>
+                </mtd>
+              </mtr>
+            </mtable>
+          </mstyle>
+        </math>
+    '''
+    steps_mml = mml2steps(mml)
+    assert len(steps_mml) == 3
+    print(type(steps_mml[0]))
+    assert steps_mml[0] == '<math><mstyle><mn> 2 </mn><mi> x </mi><mo> - </mo><mn> 4 </mn><mo> = </mo><mn> 7 </mn></mstyle></math>'
+    assert steps_mml[1] == '<math><mstyle><mn> 2 </mn><mi> x </mi><mo> = </mo><mn> 11 </mn></mstyle></math>'
