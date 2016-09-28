@@ -137,7 +137,7 @@ def test_tree2sympy():
     '''
     tree = mml2tree(tree_mml)
     sympy = tree2sympy(tree)
-    assert sympy == "Eq(Add(Mul(Integer(2),Symbol('x'),),Integer(4),),Integer(7))"
+    assert sympy == "Eq(Add(Mul(Integer(2),Symbol('x'),evaluate=False),Integer(4),evaluate=False),Integer(7),evaluate=False)"
 
     tree_mml = '''
       <mfrac>
@@ -157,7 +157,7 @@ def test_tree2sympy():
     '''
     tree = mml2tree(tree_mml)
     sympy = tree2sympy(tree)
-    assert sympy == "Mul(Add(Mul(Integer(2),Symbol('x'),),Integer(4),),Pow(Integer(7),Integer(-1)))"
+    assert sympy == "Mul(Add(Mul(Integer(2),Symbol('x'),evaluate=False),Integer(4),evaluate=False),Pow(Integer(7),Integer(-1)),evaluate=False)"
 
 
 def test_mml2tree():
@@ -245,7 +245,7 @@ def test_mml2sympy():
     step_sympies = mml2sympy(mml)
     assert step_sympies is not None
     assert len(step_sympies) == 1
-    assert step_sympies[0] == "Eq(Add(Mul(Integer(2),Symbol('x'),),Integer(4),),Integer(7))"
+    assert step_sympies[0] == "Eq(Add(Mul(Integer(2),Symbol('x'),evaluate=False),Integer(4),evaluate=False),Integer(7),evaluate=False)"
 
     mml = '''
         <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -290,7 +290,7 @@ def test_mml2sympy():
     step_sympies = mml2sympy(mml)
     assert step_sympies is not None
     assert len(step_sympies) == 3
-    assert step_sympies[0] == "Eq(Add(Mul(Integer(2),Symbol('x'),),Integer(4),),Integer(7))"
+    assert step_sympies[0] == "Eq(Add(Mul(Integer(2),Symbol('x'),evaluate=False),Integer(4),evaluate=False),Integer(7),evaluate=False)"
 
 
 def test_mml2steps():

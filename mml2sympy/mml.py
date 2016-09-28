@@ -84,7 +84,8 @@ def mml2steptrees(mml):
 
 
 def tree2sympy(mmltree,
-               skip_elements=["mrow", "mfenced", "mstyle", "mtr", "mtd"]):
+               skip_elements=["mrow", "mfenced", "mstyle", "mtr", "mtd"],
+               evaluate=False):
     sympyres = r""
 
     # Non-atomic elements
@@ -96,7 +97,7 @@ def tree2sympy(mmltree,
         sympyres += tree2sympy(mmltree.getchildren()[0])
         sympyres += r","
         sympyres += tree2sympy(mmltree.getchildren()[1])
-        sympyres += r")"
+        sympyres += r",evaluate={0})".format(evaluate)
     elif mmltree.tag == "madd":
         if len(mmltree.getchildren()) < 2:
             raise Exception('madd element {0} doesn"t have at least 2 rows.'
@@ -105,7 +106,7 @@ def tree2sympy(mmltree,
         for child in mmltree.getchildren():
             sympyres += tree2sympy(child)
             sympyres += r","
-        sympyres += r")"
+        sympyres += r"evaluate={0})".format(evaluate)
     elif mmltree.tag == "mmul":
         if len(mmltree.getchildren()) < 2:
             raise Exception('mmul element {0} doesn"t have at least 2 rows.'
@@ -114,7 +115,7 @@ def tree2sympy(mmltree,
         for child in mmltree.getchildren():
             sympyres += tree2sympy(child)
             sympyres += r","
-        sympyres += r")"
+        sympyres += r"evaluate={0})".format(evaluate)
     elif mmltree.tag == "msup":
         if len(mmltree.getchildren()) < 2:
             raise Exception('msup element {0} doesn"t have at least 2 rows.'
@@ -123,7 +124,7 @@ def tree2sympy(mmltree,
         sympyres += tree2sympy(mmltree.getchildren()[0])
         sympyres += r","
         sympyres += tree2sympy(mmltree.getchildren()[1])
-        sympyres += ")"
+        sympyres += r",evaluate={0})".format(evaluate)
     elif mmltree.tag == "mfrac":
         if len(mmltree.getchildren()) < 2:
             raise Exception("mfrac element {0} doesn't have at least 2 rows."
@@ -133,7 +134,7 @@ def tree2sympy(mmltree,
         sympyres += r",Pow("
         sympyres += tree2sympy(mmltree.getchildren()[1])
         sympyres += r",Integer(-1))"  # close Pow
-        sympyres += r")"
+        sympyres += r",evaluate={0})".format(evaluate)
     elif mmltree.tag == "msqrt":
         if len(mmltree.getchildren()) < 1:
             raise Exception("msqrt element {0} doesn't have any elements."
@@ -141,7 +142,7 @@ def tree2sympy(mmltree,
         sympyres += r"Pow("
         sympyres += mml2sympy(mmltree.getchildren()[0])
         sympyres += r",Rational(1,2)"
-        sympyres += r")"
+        sympyres += r",evaluate={0})".format(evaluate)
 
     # Skip elements (mrow, mstyle, mfenced, etc.)
     elif mmltree.tag in skip_elements:
