@@ -66,6 +66,16 @@ def test_modify():
     assert hasattr(modified_tree.meq, 'madd')
     assert hasattr(modified_tree.meq.madd, 'mmul')
 
+    modify_mml = '''
+        <mtd>
+          <mn> 27 </mn>
+        </mtd>
+    '''
+    tree = mml2tree(modify_mml)
+    modified_tree = modify(tree)
+    assert hasattr(modified_tree, 'mn')
+    assert modified_tree.countchildren() == 1
+
 
 def test_table2trees():
     mtable_mml = '''

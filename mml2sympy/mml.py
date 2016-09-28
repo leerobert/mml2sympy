@@ -9,11 +9,14 @@ MML_NUM = 'mn'
 MML_SYM = 'mi'
 
 ADD_OPS = ['+', '-']
+MUL_OPS = ['/', '*']
 EQ_OPS = ['=']
 SIMILAR_OPS = {
     '+': ADD_OPS,
     '-': ADD_OPS,
     '=': EQ_OPS,
+    '*': MUL_OPS,
+    '/': MUL_OPS,
 }
 
 ADD_OPS_TAG = 'madd'
@@ -197,10 +200,12 @@ def modify(mmltree):
             else:  # just one element so append as leaf -- extend since list
                 op.extend(grouped_elems)
         modified_tree.append(op)
-    else:  # no op elements so must be multiple mn/mi
+    elif len(all_elements) > 1:  # no op elements so must be multiple mn/mi
         mmul = objectify.Element(MUL_OPS_TAG)
         mmul.extend(all_elements)
         modified_tree.append(mmul)
+    else:  # only one element so just leave it alone
+        modified_tree.extend(all_elements)
 
     # remove namespaces from objectify and return modified tree
     objectify.deannotate(modified_tree, cleanup_namespaces=True)
@@ -213,6 +218,8 @@ def _modified_tag_for(element):
         tag = ADD_OPS_TAG
     elif element.text.strip() in EQ_OPS:
         tag = EQ_OPS_TAG
+    elif element.text.strip() in MUL_OPS:
+        tag = MUL_OPS_TAG
     else:
         raise Exception("modified tag not found for: {0}".format(element))
 
