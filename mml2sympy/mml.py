@@ -8,9 +8,13 @@ MML_OP = 'mo'
 MML_NUM = 'mn'
 MML_SYM = 'mi'
 
-ADD_OPS = ['+', '-']
+PLUS_SIGN = '+'
+MINUS_SIGN = '-'
+ADD_OPS = [PLUS_SIGN, MINUS_SIGN]
 MUL_OPS = ['/', '*', '×']
 EQ_OPS = ['=']
+OPS = ADD_OPS + MUL_OPS + EQ_OPS
+
 SIMILAR_OPS = {
     '+': ADD_OPS,
     '-': ADD_OPS,
@@ -178,8 +182,7 @@ def modify(mmltree):
 
     ~> returns the mmltree with elements modified accordingly
     '''
-    # base case... just return the single element
-    if not mmltree or not mmltree.getchildren():
+    if mmltree is None or not mmltree.getchildren():
         return mmltree
 
     # build a copy to use to modify and remove its children
@@ -187,8 +190,31 @@ def modify(mmltree):
     [modified_tree.remove(child) for child in modified_tree.getchildren()]
 
     all_elements = mmltree.getchildren()
-    op_elements = _highest_priority_ops(mmltree)
 
+    # if first element is an ADD op, handle applying that op
+    # as a mmul of the op and the following mn/mi
+    first_elem = all_elements[0]
+    second_elem = all_elements[1] if len(all_elements) > 1 else None
+    if first_elem.tag == MML_OP and first_elem.text.strip() in ADD_OPS:
+        if first_elem.text.strip() == PLUS_SIGN:
+            all_elements.remove(first_elem)  # just remove it...
+        elif first_elem.text.strip() == MINUS_SIGN:
+            mmul = objectify.Element(MUL_OPS_TAG)
+            negative_one = objectify.fromstring('<mn> -1 </mn>')
+            mmul.append(negative_one)
+            mmul.append(second_elem)
+
+            # replace the first elem with the new mmul
+            all_elements.remove(first_elem)
+            all_elements.remove(second_elem)
+            all_elements.insert(0, mmul)
+
+    # next, handle fencing... by replacing mfenced
+    if hasattr(modified_tree, 'mfenced'):
+        pass
+
+    # lastly handle the elements themselves
+    op_elements = _highest_priority_ops(all_elements)
     if op_elements:
         elements_split = isplit(all_elements, op_elements)
         tag = _modified_tag_for(op_elements[0])
@@ -228,8 +254,8 @@ def _modified_tag_for(element):
     return tag
 
 
-def _highest_priority_ops(mmltree):
-    ops = mmltree.findall(MML_OP)  # find all ops
+def _highest_priority_ops(elements):
+    ops = [elem for elem in elements if elem.tag == MML_OP]
     if not ops:
         return []  # no ops so return empty list
 

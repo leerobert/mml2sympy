@@ -1,3 +1,4 @@
+from lxml import etree
 from mml2sympy import mml2tree, tree2sympy, table2trees, modify, mml2sympy, mml2steps
 from mml2sympy.mml import _highest_priority_ops
 
@@ -29,6 +30,7 @@ def test_modify():
     modified_tree = modify(tree)
     modify_tree = mml2tree(modify_to_mml)
     assert modify_tree.tag == modified_tree.tag
+    print(etree.tostring(modified_tree))
     assert hasattr(modified_tree, 'madd')
     assert hasattr(modified_tree.madd, 'mn')
     assert hasattr(modified_tree.madd, 'mmul')
@@ -78,8 +80,9 @@ def test_modify__highest_priority_ops():
         </mtd>
     '''
     tree = mml2tree(modify_mml)
-    ops = _highest_priority_ops(tree)
+    ops = _highest_priority_ops(tree.getchildren())
     assert len(ops) == 1
+    assert ops[0].text.strip() == '×'
 
 
 def test_modify_times():
@@ -106,6 +109,63 @@ def test_modify_times():
     assert hasattr(modified_tree, 'mmul')
     assert hasattr(modified_tree.mmul, 'mn')
     assert modified_tree.mmul.countchildren() == 2
+
+
+def test_modify_mfenced():
+    modify_mml = '''
+        <mtd>
+          <mn> 2 </mn>
+          <mfenced>
+            <mrow>
+              <mi> x </mi>
+              <mo> - </mo>
+              <mn> 4 </mn>
+            </mrow>
+          </mfenced>
+        </mtd>
+    '''
+    modify_to_mml = '''
+        <mtd>
+          <mmul>
+            <mn> 2 </mn>
+            <mfenced>
+              <mrow>
+                <mi> x </mi>
+                <mo> - </mo>
+                <mn> 4 </mn>
+              </mrow>
+            </mfenced>
+          </mmul>
+        </mtd>
+    '''
+    tree = mml2tree(modify_mml)
+    modified_tree = modify(tree)
+    # assert hasattr(modified_tree, 'mmul')
+    # assert modified_tree.mmul.countchildren() == 2
+
+
+def test_modify_positive_negative_first_element():
+    modify_mml = '''
+    <mtd>
+        <mo> + </mo>
+        <mi> x </mi>
+    </mtd>
+    '''
+    modify_to_mml = b'<mtd><mi> x </mi></mtd>'
+    tree = mml2tree(modify_mml)
+    modified_tree = modify(tree)
+    assert etree.tostring(modified_tree) == modify_to_mml
+
+    modify_mml = '''
+    <mtd>
+        <mo> - </mo>
+        <mi> x </mi>
+    </mtd>
+    '''
+    modify_to_mml = b'<mtd><mmul><mn> -1 </mn><mi> x </mi></mmul></mtd>'
+    tree = mml2tree(modify_mml)
+    modified_tree = modify(tree)
+    assert etree.tostring(modified_tree) == modify_to_mml
 
 
 def test_table2trees():
