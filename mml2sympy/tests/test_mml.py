@@ -1,6 +1,7 @@
 from lxml import etree
 from mml2sympy import mml2tree, tree2sympy, table2trees, modify, mml2sympy, mml2steps
 from mml2sympy.mml import _highest_priority_ops
+from mml2sympy.util import flatten_string
 
 
 def test_modify():
@@ -114,20 +115,33 @@ def test_modify_times():
 def test_modify_mfenced():
     modify_mml = '''
         <mtd>
-          <mn> 2 </mn>
+          <mn>2</mn>
           <mfenced>
             <mrow>
-              <mi> x </mi>
-              <mo> - </mo>
-              <mn> 4 </mn>
+              <mi>x</mi>
+              <mo>-</mo>
+              <mn>4</mn>
             </mrow>
           </mfenced>
         </mtd>
     '''
-    modify_to_mml = b'<mtd><mmul><mn> 2 </mn><mfenced><mrow><mi> x </mi><mo> - </mo><mn> 4 </mn></mrow></mfenced></mmul></mtd>'
+    modify_to_mml = flatten_string('''
+            <mtd>
+              <mmul>
+                <mn> 2 </mn>
+                <mfenced>
+                  <mrow>
+                    <mi> x </mi>
+                    <mo> - </mo>
+                    <mn> 4 </mn>
+                  </mrow>
+                </mfenced>
+              </mmul>
+            </mtd>
+        ''')
     tree = mml2tree(modify_mml)
     modified_tree = modify(tree)
-    assert etree.tostring(modified_tree) == modify_to_mml
+    assert etree.tostring(modified_tree).decode('utf-8') == modify_to_mml
 
 
 def test_modify_positive_negative_first_element():

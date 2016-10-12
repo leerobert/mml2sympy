@@ -234,7 +234,6 @@ def modify(mmltree):
             # grab all the add, div elements in all_elements
             add_div_elems = [e for e in all_elements if is_add(e) or is_div(e)]
             split_by_not_mul = isplit(all_elements, add_div_elems)
-            print(split_by_not_mul)
             for group in split_by_not_mul:
                 # if they contain an mfenced and two or more elements...
                 if any(is_mfenced(elem) for elem in group) and len(group) >= 2:

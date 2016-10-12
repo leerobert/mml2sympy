@@ -9,3 +9,8 @@ def isplit(iterable, splitters):
     '''
     return [list(g) for k, g
             in itertools.groupby(iterable, lambda x:x in splitters) if not k]
+
+
+def flatten_string(s):
+    ''' Flattens a readable new line mml string into one line '''
+    return ''.join(s.split())
