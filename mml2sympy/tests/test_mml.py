@@ -124,24 +124,10 @@ def test_modify_mfenced():
           </mfenced>
         </mtd>
     '''
-    modify_to_mml = '''
-        <mtd>
-          <mmul>
-            <mn> 2 </mn>
-            <mfenced>
-              <mrow>
-                <mi> x </mi>
-                <mo> - </mo>
-                <mn> 4 </mn>
-              </mrow>
-            </mfenced>
-          </mmul>
-        </mtd>
-    '''
+    modify_to_mml = b'<mtd><mmul><mn> 2 </mn><mfenced><mrow><mi> x </mi><mo> - </mo><mn> 4 </mn></mrow></mfenced></mmul></mtd>'
     tree = mml2tree(modify_mml)
     modified_tree = modify(tree)
-    # assert hasattr(modified_tree, 'mmul')
-    # assert modified_tree.mmul.countchildren() == 2
+    assert etree.tostring(modified_tree) == modify_to_mml
 
 
 def test_modify_positive_negative_first_element():

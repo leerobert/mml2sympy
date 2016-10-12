@@ -11,9 +11,10 @@ MML_SYM = 'mi'
 PLUS_SIGN = '+'
 MINUS_SIGN = '-'
 ADD_OPS = [PLUS_SIGN, MINUS_SIGN]
-MUL_OPS = ['/', '*', '×']
+MUL_OPS = ['*', '×']
+DIV_OPS = ['/', '÷']  # TODO: section to handle modification of division to mfrac
 EQ_OPS = ['=']
-OPS = ADD_OPS + MUL_OPS + EQ_OPS
+OPS = ADD_OPS + MUL_OPS + EQ_OPS + DIV_OPS
 
 SIMILAR_OPS = {
     '+': ADD_OPS,
@@ -27,6 +28,22 @@ SIMILAR_OPS = {
 ADD_OPS_TAG = 'madd'
 MUL_OPS_TAG = 'mmul'
 EQ_OPS_TAG = 'meq'
+
+
+def is_add(element):
+    return element.tag == MML_OP and element.text.strip() in ADD_OPS
+
+
+def is_mul(element):
+    return element.tag == MML_OP and element.text.strip() in MUL_OPS
+
+
+def is_div(element):
+    return element.tag == MML_OP and element.text.strip() in DIV_OPS
+
+
+def is_mfenced(element):
+    return element.tag == 'mfenced'
 
 
 def mml2sympy(mml):
@@ -194,8 +211,9 @@ def modify(mmltree):
     # if first element is an ADD op, handle applying that op
     # as a mmul of the op and the following mn/mi
     first_elem = all_elements[0]
-    second_elem = all_elements[1] if len(all_elements) > 1 else None
     if first_elem.tag == MML_OP and first_elem.text.strip() in ADD_OPS:
+        second_elem = all_elements[1] if len(all_elements) > 1 else None
+
         if first_elem.text.strip() == PLUS_SIGN:
             all_elements.remove(first_elem)  # just remove it...
         elif first_elem.text.strip() == MINUS_SIGN:
@@ -204,14 +222,30 @@ def modify(mmltree):
             mmul.append(negative_one)
             mmul.append(second_elem)
 
-            # replace the first elem with the new mmul
+            # replace the first_elem, second_elem with the new mmul
             all_elements.remove(first_elem)
             all_elements.remove(second_elem)
             all_elements.insert(0, mmul)
 
-    # next, handle fencing... by replacing mfenced
-    if hasattr(modified_tree, 'mfenced'):
-        pass
+    if hasattr(mmltree, 'mfenced'):
+        # if the mmltree itself is not already a mmul element..
+        # otherwise, just ignore mfenced is already handled..
+        if mmltree.tag != MUL_OPS_TAG:
+            # grab all the add, div elements in all_elements
+            add_div_elems = [e for e in all_elements if is_add(e) or is_div(e)]
+            split_by_not_mul = isplit(all_elements, add_div_elems)
+            print(split_by_not_mul)
+            for group in split_by_not_mul:
+                # if they contain an mfenced and two or more elements...
+                if any(is_mfenced(elem) for elem in group) and len(group) >= 2:
+                    mmul = objectify.Element(MUL_OPS_TAG)
+                    mmul.extend(group)  # don't recurse here... recurse below
+
+                    # remove all the elements in the group and
+                    # replace them with the mmul for the mfenced
+                    group_begin_idx = all_elements.index(group[0])
+                    [all_elements.remove(element) for element in group]
+                    all_elements.insert(group_begin_idx, mmul)
 
     # lastly handle the elements themselves
     op_elements = _highest_priority_ops(all_elements)
