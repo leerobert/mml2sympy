@@ -9,13 +9,14 @@ MML_NUM = 'mn'
 MML_SYM = 'mi'
 
 ADD_OPS = ['+', '-']
-MUL_OPS = ['/', '*']
+MUL_OPS = ['/', '*', '×']
 EQ_OPS = ['=']
 SIMILAR_OPS = {
     '+': ADD_OPS,
     '-': ADD_OPS,
     '=': EQ_OPS,
     '*': MUL_OPS,
+    '×': MUL_OPS,
     '/': MUL_OPS,
 }
 
@@ -186,7 +187,7 @@ def modify(mmltree):
     [modified_tree.remove(child) for child in modified_tree.getchildren()]
 
     all_elements = mmltree.getchildren()
-    op_elements = _highest_priority_op(mmltree)
+    op_elements = _highest_priority_ops(mmltree)
 
     if op_elements:
         elements_split = isplit(all_elements, op_elements)
@@ -197,7 +198,7 @@ def modify(mmltree):
                 placeholder = objectify.Element('placeholder')
                 placeholder.extend(grouped_elems)
                 modified_group_tree = modify(placeholder)
-                op.extend(modified_group_tree.getchildren())  # remove placeholder
+                op.extend(modified_group_tree.getchildren())  # rm placeholder
             else:  # just one element so append as leaf -- extend since list
                 op.extend(grouped_elems)
         modified_tree.append(op)
@@ -227,7 +228,7 @@ def _modified_tag_for(element):
     return tag
 
 
-def _highest_priority_op(mmltree):
+def _highest_priority_ops(mmltree):
     ops = mmltree.findall(MML_OP)  # find all ops
     if not ops:
         return []  # no ops so return empty list

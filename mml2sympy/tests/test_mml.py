@@ -1,4 +1,5 @@
 from mml2sympy import mml2tree, tree2sympy, table2trees, modify, mml2sympy, mml2steps
+from mml2sympy.mml import _highest_priority_ops
 
 
 def test_modify():
@@ -66,15 +67,45 @@ def test_modify():
     assert hasattr(modified_tree.meq, 'madd')
     assert hasattr(modified_tree.meq.madd, 'mmul')
 
+
+def test_modify__highest_priority_ops():
     modify_mml = '''
         <mtd>
-          <mn> 27 </mn>
+          <mn> 2 </mn>
+          <mo> &#x00D7; </mo>
+          <mo> - </mo>
+          <mn> 4 </mn>
+        </mtd>
+    '''
+    tree = mml2tree(modify_mml)
+    ops = _highest_priority_ops(tree)
+    assert len(ops) == 1
+
+
+def test_modify_times():
+    modify_mml = '''
+        <mtd>
+          <mn> 2 </mn>
+          <mo> &#x00D7; </mo>
+          <mo> - </mo>
+          <mn> 4 </mn>
+        </mtd>
+    '''
+    modify_to_mml = '''
+        <mtd>
+          <mmul>
+            <mn> 2 </mn>
+            <mn> -4 </mn>
+          </mmul>
         </mtd>
     '''
     tree = mml2tree(modify_mml)
     modified_tree = modify(tree)
-    assert hasattr(modified_tree, 'mn')
-    assert modified_tree.countchildren() == 1
+    expected_tree = mml2tree(modify_to_mml)
+    assert modified_tree.tag == expected_tree.tag
+    assert hasattr(modified_tree, 'mmul')
+    assert hasattr(modified_tree.mmul, 'mn')
+    assert modified_tree.mmul.countchildren() == 2
 
 
 def test_table2trees():
