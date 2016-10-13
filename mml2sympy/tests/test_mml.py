@@ -144,6 +144,56 @@ def test_modify_mfenced():
     assert etree.tostring(modified_tree).decode('utf-8') == modify_to_mml
 
 
+def test_modify_mfenced_multiple():
+    modify_mml = '''
+        <mtd>
+          <mn>2</mn>
+          <mfenced>
+            <mrow>
+              <mi>x</mi>
+              <mo>-</mo>
+              <mn>4</mn>
+            </mrow>
+          </mfenced>
+          <mo>+</mo>
+          <mfenced>
+            <mrow>
+              <mi>x</mi>
+              <mo>+</mo>
+              <mn>7</mn>
+            </mrow>
+          </mfenced>
+        </mtd>
+    '''
+    modify_to_mml = flatten_string('''
+            <mtd>
+              <madd>
+                <mmul>
+                  <mn> 2 </mn>
+                  <mfenced>
+                    <mrow>
+                      <mi> x </mi>
+                      <mo> - </mo>
+                      <mn> 4 </mn>
+                    </mrow>
+                  </mfenced>
+                </mmul>
+                <mfenced>
+                  <mrow>
+                    <mi>x</mi>
+                    <mo>+</mo>
+                    <mn>7</mn>
+                  </mrow>
+                </mfenced>
+              </madd>
+            </mtd>
+        ''')
+    tree = mml2tree(modify_mml)
+    modified_tree = modify(tree)
+    assert etree.tostring(modified_tree).decode('utf-8') == modify_to_mml
+
+
+
 def test_modify_positive_negative_first_element():
     modify_mml = '''
     <mtd>
